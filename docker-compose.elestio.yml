@@ -6,10 +6,11 @@ version: '3.8'
 services:
   login-server:
     # Build directly from GitHub repository
-    image: anymize/login-server:latest
     build:
       context: https://github.com/Nraitschew/login.git
       dockerfile: Dockerfile
+      no_cache: true
+    image: anymize/login-server:${BUILD_TAG:-latest}
       
     container_name: anymize-login
     

@@ -189,7 +189,7 @@ router.post('/verify', async (req, res) => {
     }
     
     // Return session info for client-side storage
-    res.json({
+    const responseData = {
       success: true,
       session: {
         token: sessionToken,
@@ -204,7 +204,10 @@ router.post('/verify', async (req, res) => {
         telephone_number: user.telephone_number,
         tokens: user.tokens || 0
       }
-    });
+    };
+    
+    console.log('[Auth] Sending verify response with session token:', sessionToken.substring(0, 10) + '...');
+    res.json(responseData);
     
   } catch (error) {
     console.error('Verify error:', error.response?.data || error.message);

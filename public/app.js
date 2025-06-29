@@ -155,9 +155,17 @@ verifyButton.addEventListener('click', async () => {
         });
         
         const data = await response.json();
+        console.log('[Auth] Verify response:', data);
         
         if (data.success) {
             showSuccess(verifyError, 'Erfolgreich angemeldet! Sie werden weitergeleitet...');
+            
+            // Check if we have session data
+            if (!data.session || !data.session.token) {
+                console.error('[Auth] No session data in response!');
+                showError(verifyError, 'Fehler: Keine Session-Daten erhalten');
+                return;
+            }
             
             // Store session info in localStorage for cross-domain access
             const sessionData = {
@@ -171,6 +179,8 @@ verifyButton.addEventListener('click', async () => {
             
             // Also store just the token for easy access
             localStorage.setItem('anymize_token', data.session.token);
+            
+            console.log('[Auth] Session stored, token:', data.session.token.substring(0, 10) + '...');
             
             // Redirect after short delay WITH TOKEN IN URL
             setTimeout(() => {
@@ -199,13 +209,21 @@ verifyButton.addEventListener('click', async () => {
                 
                 // Add token to redirect URL
                 const redirectParams = new URLSearchParams();
+                
+                // Ensure we have valid session data
+                if (!data.session || !data.session.token) {
+                    console.error('[Auth] Cannot redirect - no session token!');
+                    window.location.href = redirectUrl; // Redirect without token
+                    return;
+                }
+                
                 redirectParams.set('auth_token', data.session.token);
-                redirectParams.set('expires', data.session.expires_at);
+                redirectParams.set('expires', data.session.expires_at || new Date(Date.now() + 48*60*60*1000).toISOString());
                 
                 const separator = redirectUrl.includes('?') ? '&' : '?';
                 const finalUrl = `${redirectUrl}${separator}${redirectParams.toString()}`;
                 
-                console.log('Redirecting to:', finalUrl);
+                console.log('[Auth] Redirecting to:', finalUrl);
                 window.location.href = finalUrl;
             }, 1500);
         } else {
