@@ -220,10 +220,25 @@ verifyButton.addEventListener('click', async () => {
                 redirectParams.set('auth_token', data.session.token);
                 redirectParams.set('expires', data.session.expires_at || new Date(Date.now() + 48*60*60*1000).toISOString());
                 
-                const separator = redirectUrl.includes('?') ? '&' : '?';
-                const finalUrl = `${redirectUrl}${separator}${redirectParams.toString()}`;
+                // Parse the redirect URL to extract the base domain
+                let baseUrl = redirectUrl;
+                let originalPath = '/';
                 
-                console.log('[Auth] Redirecting to:', finalUrl);
+                try {
+                    const url = new URL(redirectUrl);
+                    baseUrl = url.origin;
+                    originalPath = url.pathname + url.search;
+                } catch (e) {
+                    console.log('[Auth] Could not parse redirect URL, using as-is');
+                }
+                
+                // Redirect to auth callback endpoint
+                const callbackUrl = `${baseUrl}/auth/callback`;
+                redirectParams.set('next', originalPath);
+                
+                const finalUrl = `${callbackUrl}?${redirectParams.toString()}`;
+                
+                console.log('[Auth] Redirecting to callback:', finalUrl);
                 window.location.href = finalUrl;
             }, 1500);
         } else {
