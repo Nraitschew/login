@@ -194,7 +194,7 @@ router.post('/verify', async (req, res) => {
       session: {
         token: sessionToken,
         id: sessionId,
-        expires_at: session.expires_at
+        expires_at: sessionData.expires_at
       },
       user: {
         id: user.Id,
