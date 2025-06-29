@@ -28,7 +28,7 @@ services:
       - EMAIL_WEBHOOK=${EMAIL_WEBHOOK}
       - SMS_WEBHOOK=${SMS_WEBHOOK}
       - SESSION_SECRET=${SESSION_SECRET}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai,http://localhost:8000,http://localhost:9000,http://localhost:3000,http://localhost:7500}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai,https://app.anymize.ai,https://www.anymize.ai,http://localhost:8000,http://localhost:9000,http://localhost:3000,http://localhost:7500,http://localhost:5000,http://localhost:8080}
       # SUCCESS_REDIRECT is now handled dynamically based on the redirect parameter
       
     # Restart policy
