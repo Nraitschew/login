@@ -28,7 +28,7 @@ services:
       - SMS_WEBHOOK=${SMS_WEBHOOK}
       - SESSION_SECRET=${SESSION_SECRET}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai}
-      - SUCCESS_REDIRECT=${SUCCESS_REDIRECT:-https://explore.anymize.ai}
+      # SUCCESS_REDIRECT is now handled dynamically based on the redirect parameter
       
     # Restart policy
     restart: unless-stopped
