@@ -168,8 +168,30 @@ verifyButton.addEventListener('click', async () => {
             
             // Redirect after short delay
             setTimeout(() => {
-                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') 
-                    || 'https://explore.anymize.ai';
+                // Get redirect URL from query parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                let redirectUrl = urlParams.get('redirect');
+                
+                if (!redirectUrl) {
+                    // Default based on where login was initiated
+                    const referrer = document.referrer;
+                    if (referrer) {
+                        // Try to use the referrer if available
+                        redirectUrl = referrer;
+                    } else {
+                        // Final fallback
+                        redirectUrl = 'https://explore.anymize.ai';
+                    }
+                }
+                
+                // Decode the URL if it was encoded
+                try {
+                    redirectUrl = decodeURIComponent(redirectUrl);
+                } catch (e) {
+                    console.error('Failed to decode redirect URL:', e);
+                }
+                
+                console.log('Redirecting to:', redirectUrl);
                 window.location.href = redirectUrl;
             }, 1500);
         } else {
@@ -231,8 +253,18 @@ window.addEventListener('load', async () => {
                 };
                 localStorage.setItem('anymize_session', JSON.stringify(sessionData));
                 
-                // Redirect to app
-                window.location.href = redirectUrl || 'https://explore.anymize.ai';
+                // Redirect to app or back to origin
+                if (redirectUrl) {
+                    try {
+                        const decodedUrl = decodeURIComponent(redirectUrl);
+                        window.location.href = decodedUrl;
+                    } catch (e) {
+                        window.location.href = redirectUrl;
+                    }
+                } else {
+                    // Try to go back to referrer or default
+                    window.location.href = document.referrer || 'https://explore.anymize.ai';
+                }
             } else {
                 // Show login form
                 loadingSpinner.style.display = 'none';
