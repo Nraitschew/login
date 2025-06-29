@@ -172,7 +172,7 @@ verifyButton.addEventListener('click', async () => {
             // Also store just the token for easy access
             localStorage.setItem('anymize_token', data.session.token);
             
-            // Redirect after short delay
+            // Redirect after short delay WITH TOKEN IN URL
             setTimeout(() => {
                 // Get redirect URL from query parameter
                 const urlParams = new URLSearchParams(window.location.search);
@@ -197,8 +197,16 @@ verifyButton.addEventListener('click', async () => {
                     console.error('Failed to decode redirect URL:', e);
                 }
                 
-                console.log('Redirecting to:', redirectUrl);
-                window.location.href = redirectUrl;
+                // Add token to redirect URL
+                const redirectParams = new URLSearchParams();
+                redirectParams.set('auth_token', data.session.token);
+                redirectParams.set('expires', data.session.expires_at);
+                
+                const separator = redirectUrl.includes('?') ? '&' : '?';
+                const finalUrl = `${redirectUrl}${separator}${redirectParams.toString()}`;
+                
+                console.log('Redirecting to:', finalUrl);
+                window.location.href = finalUrl;
             }, 1500);
         } else {
             showError(verifyError, data.message || 'Ungültiger Code');
