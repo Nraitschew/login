@@ -188,16 +188,14 @@ router.post('/verify', async (req, res) => {
       console.error('Link error:', linkError.response?.data || linkError.message);
     }
     
-    // Set session cookie
-    res.cookie('anymize_session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 48 * 60 * 60 * 1000 // 48 hours
-    });
-    
+    // Return session info for client-side storage
     res.json({
       success: true,
+      session: {
+        token: sessionToken,
+        id: sessionId,
+        expires_at: session.expires_at
+      },
       user: {
         id: user.Id,
         email: user.email,
@@ -220,7 +218,9 @@ router.post('/verify', async (req, res) => {
 // Check session endpoint
 router.post('/session', async (req, res) => {
   try {
-    const token = req.cookies.anymize_session;
+    // Accept token from either Authorization header or body
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace('Bearer ', '') || req.body.token;
     
     if (!token) {
       return res.json({ valid: false });
@@ -266,7 +266,9 @@ router.post('/session', async (req, res) => {
 // Logout endpoint
 router.post('/logout', async (req, res) => {
   try {
-    const token = req.cookies.anymize_session;
+    // Accept token from either Authorization header or body
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace('Bearer ', '') || req.body.token;
     
     if (token) {
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -283,9 +285,6 @@ router.post('/logout', async (req, res) => {
         });
       }
     }
-    
-    // Clear cookie
-    res.clearCookie('anymize_session');
     
     res.json({ success: true });
     

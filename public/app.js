@@ -159,12 +159,18 @@ verifyButton.addEventListener('click', async () => {
         if (data.success) {
             showSuccess(verifyError, 'Erfolgreich angemeldet! Sie werden weitergeleitet...');
             
-            // Store session token in localStorage for cross-domain access
+            // Store session info in localStorage for cross-domain access
             const sessionData = {
+                token: data.session.token,
+                sessionId: data.session.id,
+                expiresAt: data.session.expires_at,
                 user: data.user,
                 timestamp: Date.now()
             };
             localStorage.setItem('anymize_session', JSON.stringify(sessionData));
+            
+            // Also store just the token for easy access
+            localStorage.setItem('anymize_token', data.session.token);
             
             // Redirect after short delay
             setTimeout(() => {
