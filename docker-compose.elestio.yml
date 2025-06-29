@@ -1,0 +1,55 @@
+# Elestio-specific Docker Compose configuration
+# This file is optimized for deployment on Elestio.io
+
+version: '3.8'
+
+services:
+  login-server:
+    # Build directly from GitHub repository
+    image: anymize/login-server:latest
+    build:
+      context: https://github.com/Nraitschew/login.git
+      dockerfile: Dockerfile
+      
+    container_name: anymize-login
+    
+    # Network configuration
+    ports:
+      - "${PORT:-7500}:7500"
+      
+    # Environment configuration for Elestio
+    environment:
+      # These will be set in Elestio's environment variables UI
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-7500}
+      - NOCODB_BASE=${NOCODB_BASE}
+      - NOCODB_TOKEN=${NOCODB_TOKEN}
+      - EMAIL_WEBHOOK=${EMAIL_WEBHOOK}
+      - SMS_WEBHOOK=${SMS_WEBHOOK}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai}
+      - SUCCESS_REDIRECT=${SUCCESS_REDIRECT:-https://explore.anymize.ai}
+      
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7500/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    # Networks
+    networks:
+      - elestio
+      
+    # Labels for Elestio
+    labels:
+      - "elestio.app=anymize-login"
+      - "elestio.website=https://login.anymize.ai"
+      
+networks:
+  elestio:
+    driver: bridge

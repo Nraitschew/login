@@ -1,0 +1,61 @@
+# Elestio configuration file
+# This file helps Elestio understand your application
+
+config:
+  runTime: "dockerCompose"
+  version: ""
+  framework: "Node.js"
+  buildCommand: "docker-compose -f docker-compose.elestio.yml build"
+  buildDir: "/"
+  runCommand: "docker-compose -f docker-compose.elestio.yml up -d"
+  icon: ""
+  screenshot: ""
+
+ports:
+  - protocol: "HTTP"
+    targetProtocol: "HTTP"
+    listeningPort: "7500"
+    targetPort: "7500"
+    public: true
+
+exposedConfig:
+  - key: "NOCODB_BASE"
+    description: "NocoDB API Base URL"
+    defaultValue: ""
+    regex: "^https://.*"
+    
+  - key: "NOCODB_TOKEN"
+    description: "NocoDB API Token"
+    defaultValue: ""
+    regex: ".*"
+    
+  - key: "EMAIL_WEBHOOK"
+    description: "N8N Email Webhook URL"
+    defaultValue: ""
+    regex: "^https://.*"
+    
+  - key: "SMS_WEBHOOK"
+    description: "N8N SMS Webhook URL"
+    defaultValue: ""
+    regex: "^https://.*"
+    
+  - key: "SESSION_SECRET"
+    description: "Session Secret (32+ chars)"
+    defaultValue: ""
+    regex: ".{32,}"
+    
+  - key: "ALLOWED_ORIGINS"
+    description: "Allowed CORS Origins (comma separated)"
+    defaultValue: "https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai"
+    regex: ".*"
+    
+  - key: "SUCCESS_REDIRECT"
+    description: "Default redirect URL after login"
+    defaultValue: "https://explore.anymize.ai"
+    regex: "^https://.*"
+
+environments:
+  - key: "NODE_ENV"
+    value: "production"
+  - key: "PORT"
+    value: "7500"
