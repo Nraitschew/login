@@ -58,13 +58,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Rate limiting
+// Rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  max: 10, // 10 requests per window for code requests
   message: 'Zu viele Versuche. Bitte warten Sie 15 Minuten.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Don't rate limit session checks and logouts
+    return req.path === '/api/auth/session' || req.path === '/api/auth/logout';
+  }
+});
+
+// Separate rate limiter for verification attempts
+const verifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes  
+  max: 5, // Only 5 verification attempts
+  message: 'Zu viele Verifizierungsversuche. Bitte warten Sie 15 Minuten.',
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 // Static files (login page)
@@ -75,7 +88,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'anymize-login' });
 });
 
-// Auth routes
+// Auth routes with smart rate limiting
 app.use('/api/auth', authLimiter, authRoutes);
 
 // Serve login page for all other routes
