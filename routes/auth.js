@@ -74,28 +74,22 @@ router.post('/request-code', async (req, res) => {
         Id: userId,
         code: code
       });
-    } else {
-      // Create new user
-      const newUser = isEmailContact 
-        ? { email: processedContact, code: code, tokens: 100 }
-        : { telephone_number: processedContact, code: code, tokens: 100 };
       
-      const { data: created } = await nocodb.post('/tables/mj5idkixdjmzgex/records', newUser);
-      userId = created.Id;
+      // Send code via webhook only for existing users
+      const webhookUrl = isEmailContact ? process.env.EMAIL_WEBHOOK : process.env.SMS_WEBHOOK;
+      
+      if (!webhookUrl) {
+        throw new Error(`Webhook URL not configured for ${isEmailContact ? 'email' : 'SMS'}`);
+      }
+      
+      const webhookData = isEmailContact 
+        ? { email: processedContact, code: code }
+        : { phone: processedContact, code: code };
+      
+      await axios.post(webhookUrl, webhookData, { timeout: 10000 });
     }
-    
-    // Send code via webhook
-    const webhookUrl = isEmailContact ? process.env.EMAIL_WEBHOOK : process.env.SMS_WEBHOOK;
-    
-    if (!webhookUrl) {
-      throw new Error(`Webhook URL not configured for ${isEmailContact ? 'email' : 'SMS'}`);
-    }
-    
-    const webhookData = isEmailContact 
-      ? { email: processedContact, code: code }
-      : { phone: processedContact, code: code };
-    
-    await axios.post(webhookUrl, webhookData, { timeout: 10000 });
+    // If user doesn't exist, we don't create them and don't send a code
+    // But we still return success to prevent user enumeration
     
     res.json({
       success: true,
