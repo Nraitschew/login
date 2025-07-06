@@ -83,6 +83,14 @@ const verifyLimiter = rateLimit({
 // Static files (login page)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Special handling for anymize-auth.js to ensure CORS
+app.get('/anymize-auth.js', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(__dirname, 'public', 'anymize-auth.js'));
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'anymize-login' });

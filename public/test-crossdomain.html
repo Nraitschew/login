@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Domain Auth Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+        .status.authenticated {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .status.unauthenticated {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background: #111827;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #374151;
+        }
+        .log {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Anymize Cross-Domain Authentication Test</h1>
+    
+    <div class="test-section">
+        <h2>Current Environment</h2>
+        <p>Page URL: <code id="current-url"></code></p>
+        <p>Auth Server: <code id="auth-server"></code></p>
+    </div>
+    
+    <div id="status" class="status">
+        <h2>Authentication Status</h2>
+        <p>Loading...</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Actions</h2>
+        <button id="login-btn" style="display: none;">Login</button>
+        <button id="logout-btn" style="display: none;">Logout</button>
+        <button id="check-session-btn">Check Session</button>
+        <button id="get-token-btn">Get Token</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Cross-Domain Access</h2>
+        <p>Open this page in multiple tabs/domains to test synchronization:</p>
+        <ul>
+            <li><a href="http://localhost:7500/test-crossdomain.html" target="_blank">localhost:7500</a></li>
+            <li><a href="http://localhost:8000/test-crossdomain.html" target="_blank">localhost:8000</a></li>
+            <li><a href="http://localhost:9000/test-crossdomain.html" target="_blank">localhost:9000</a></li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Log</h2>
+        <div id="log" class="log"></div>
+    </div>
+    
+    <!-- Include the auth script -->
+    <script src="/anymize-auth.js"></script>
+    
+    <script>
+        // Helper to add log entries
+        function log(message, data = null) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${timestamp}] ${message}`;
+            if (data) {
+                entry.textContent += ': ' + JSON.stringify(data, null, 2);
+            }
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        // Display current environment
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('auth-server').textContent = window.location.hostname.includes('localhost') 
+            ? 'http://localhost:7500' 
+            : 'https://login.anymize.ai';
+        
+        // Update UI based on auth status
+        function updateUI() {
+            const statusDiv = document.getElementById('status');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            if (window.AnymizeAuth.isAuthenticated) {
+                const user = window.AnymizeAuth.getCurrentUser();
+                statusDiv.className = 'status authenticated';
+                statusDiv.innerHTML = `
+                    <h2>Authentication Status</h2>
+                    <p><strong>Authenticated</strong></p>
+                    <p>Email: ${user.email}</p>
+                    <p>ID: ${user.Id}</p>
+                    <p>Tokens: ${user.tokens}</p>
+                `;
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                statusDiv.className = 'status unauthenticated';
+                statusDiv.innerHTML = `
+                    <h2>Authentication Status</h2>
+                    <p><strong>Not Authenticated</strong></p>
+                `;
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+        
+        // Wait for auth to be ready
+        window.addEventListener('anymize:auth:ready', (event) => {
+            log('Auth ready event fired', event.detail);
+            updateUI();
+        });
+        
+        // Listen for logout events
+        window.addEventListener('anymize:auth:logout', () => {
+            log('Logout event fired');
+            updateUI();
+        });
+        
+        // Button handlers
+        document.getElementById('login-btn').onclick = () => {
+            log('Login button clicked');
+            window.AnymizeAuth.login();
+        };
+        
+        document.getElementById('logout-btn').onclick = async () => {
+            log('Logout button clicked');
+            await window.AnymizeAuth.logout();
+            updateUI();
+        };
+        
+        document.getElementById('check-session-btn').onclick = async () => {
+            log('Checking session...');
+            const result = await window.AnymizeAuth.checkSession();
+            log('Session check result', result);
+            updateUI();
+        };
+        
+        document.getElementById('get-token-btn').onclick = () => {
+            const token = window.AnymizeAuth.getAuthToken();
+            if (token) {
+                log('Current token', token.substring(0, 20) + '...');
+            } else {
+                log('No token found');
+            }
+        };
+        
+        // Log initial state
+        log('Page loaded');
+        log('AnymizeAuth object available', !!window.AnymizeAuth);
+    </script>
+</body>
+</html>

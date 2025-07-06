@@ -232,14 +232,28 @@ verifyButton.addEventListener('click', async () => {
                     console.log('[Auth] Could not parse redirect URL, using as-is');
                 }
                 
-                // Redirect to auth callback endpoint
-                const callbackUrl = `${baseUrl}/auth/callback`;
-                redirectParams.set('next', originalPath);
+                // Check if the target has an auth callback endpoint
+                // For localhost development, always use callback pattern
+                const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+                const hasAuthCallback = isLocalhost || baseUrl.includes('anymize.ai');
                 
-                const finalUrl = `${callbackUrl}?${redirectParams.toString()}`;
-                
-                console.log('[Auth] Redirecting to callback:', finalUrl);
-                window.location.href = finalUrl;
+                if (hasAuthCallback) {
+                    // Redirect to auth callback endpoint
+                    const callbackUrl = `${baseUrl}/auth/callback`;
+                    redirectParams.set('next', originalPath);
+                    
+                    const finalUrl = `${callbackUrl}?${redirectParams.toString()}`;
+                    
+                    console.log('[Auth] Redirecting to callback:', finalUrl);
+                    window.location.href = finalUrl;
+                } else {
+                    // Direct redirect with token in URL (for non-anymize domains)
+                    const separator = redirectUrl.includes('?') ? '&' : '?';
+                    const finalUrl = `${redirectUrl}${separator}${redirectParams.toString()}`;
+                    
+                    console.log('[Auth] Direct redirect with token:', finalUrl);
+                    window.location.href = finalUrl;
+                }
             }, 1500);
         } else {
             showError(verifyError, data.message || 'Ungültiger Code');

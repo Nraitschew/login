@@ -260,6 +260,54 @@ router.post('/session', async (req, res) => {
   }
 });
 
+// Cross-domain session sync endpoint
+router.post('/sync-session', async (req, res) => {
+  try {
+    // Accept token from either Authorization header or body
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.replace('Bearer ', '') || req.body.token;
+    
+    if (!token) {
+      return res.json({ valid: false });
+    }
+    
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const params = {
+      where: `(access_token_hash,eq,${tokenHash})`,
+      nested: { user: { fields: 'Id,email,first_name,last_name,telephone_number,tokens' } }
+    };
+    
+    const { data } = await nocodb.get('/tables/mktnfi08p9w44ie/records', { params });
+    
+    if (!data.list || data.list.length === 0) {
+      return res.json({ valid: false });
+    }
+    
+    const session = data.list[0];
+    
+    // Check if expired or revoked
+    const expiresAt = new Date(session.expires_at);
+    if (session.revoked || expiresAt < new Date()) {
+      return res.json({ valid: false });
+    }
+    
+    // Return session data for synchronization
+    res.json({
+      valid: true,
+      session: {
+        token: token, // Return the original token
+        id: session.session_id,
+        expires_at: session.expires_at
+      },
+      user: session.user
+    });
+    
+  } catch (error) {
+    console.error('Session sync error:', error.response?.data || error.message);
+    res.json({ valid: false });
+  }
+});
+
 // Logout endpoint
 router.post('/logout', async (req, res) => {
   try {
