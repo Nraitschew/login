@@ -25,7 +25,7 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-CHANGE-THIS-IN-PRODUCTION-USE-RANDOM-32-CHARS}
       
       # CORS Origins - All Anymize domains + localhost for testing
-      - ALLOWED_ORIGINS=https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai,https://www.anymize.ai,http://localhost:8000,http://localhost:9000,http://localhost:3000
+      - ALLOWED_ORIGINS=https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai,https://www.anymize.ai,https://anymizechat-u27285.vm.elestio.app
       
       # SUCCESS_REDIRECT is now handled dynamically based on the redirect parameter
       # Falls back to explore.anymize.ai only if no redirect URL is provided
