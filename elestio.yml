@@ -46,7 +46,7 @@ exposedConfig:
     
   - key: "ALLOWED_ORIGINS"
     description: "Allowed CORS Origins (comma separated)"
-    defaultValue: "https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai"
+    defaultValue: "https://anymize.ai,https://login.anymize.ai,https://explore.anymize.ai,https://chat.anymize.ai,https://www.anymize.ai,https://anymizechat-u27285.vm.elestio.app"
     regex: ".*"
     
   - key: "SUCCESS_REDIRECT"
